@@ -15,20 +15,30 @@ import {
   Typography,
   Grid,
   Button,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
 } from "@mui/material";
 import * as Yup from "yup";
 import { Field, Form, FormikProvider, useFormik } from "formik";
 import { FaWallet } from "react-icons/fa";
 import { alpha, styled } from "@mui/material/styles";
 import { LoadingButton } from "@mui/lab";
+import { Table } from "reactstrap";
 
 export default function Order() {
-  const MainForm = () => {
+  const [formData, setformData] = useState({});
+  const { amountUSDP, amountETH, leverage, slippageTolerance } = formData;
+
+  const MainForm = ({ submittedForm }) => {
     const initialValues = {
-      amountUSDP: 0,
-      amountETH:0,
+      amountUSDP: "",
+      amountETH: "",
       leverage: 1,
       slippageTolerance: 0.5,
+      usdpAutoCalc: false,
+      ethAutoCalc: false,
       customSlippageTolerance: "",
     };
     const validateSchema = Yup.object().shape({
@@ -40,20 +50,30 @@ export default function Order() {
     const formik = useFormik({
       initialValues: initialValues,
       validationSchema: validateSchema,
-      onSubmit: () => alert("Submitted form" + JSON.stringify(formik.values)),
+      onSubmit: () => {
+        formik.setSubmitting(true);
+        setTimeout(() => {
+          formik.setSubmitting(false);
+        }, 2000);
+        setformData(formik.values);
+        submittedForm(formik.values);
+      },
     });
-    const { getFieldProps } = formik;
+    const { isSubmitting } = formik;
 
-    // useEffect(() => {
-    //   const val = (formik.values.amountUSDP * 1000) / formik.values.leverage;
-    //   formik.setFieldValue("amountETH", val);
-    // }, [formik.values.amountUSDP, formik.values.leverage]);
-    // useEffect(() => {
-    //   if(formik.values.amountUSDP >= 1){
-    //     const val = (formik.values.amountETH * 1000) / formik.values.leverage;
-    //   formik.setFieldValue("amountUSDP", val);
-    //   }
-    // }, [formik.values.amountETH, formik.values.leverage]);
+    useEffect(() => {
+      if (formik.values.ethAutoCalc) {
+        formik.setFieldValue(
+          "amountETH",
+          (formik.values.amountUSDP * 1000) / formik.values.leverage
+        );
+      } else if (formik.values.usdpAutoCalc) {
+        formik.setFieldValue(
+          "amountUSDP",
+          (formik.values.amountETH * formik.values.leverage) / 1000
+        );
+      }
+    }, [formik.values.leverage]);
 
     return (
       <Fragment>
@@ -81,8 +101,11 @@ export default function Order() {
                   </span>
                 }
                 type="number"
-                // {...getFieldProps("amountUSDP")}
-                onChange={(e)=> {formik.handleChange(e); formik.setFieldValue("amountETH", (formik.values.amountETH * 1000) / formik.values.leverage)}}
+                onChange={(e) => {
+                  formik.handleChange(e);
+                  formik.setFieldValue("usdpAutoCalc", false);
+                  formik.setFieldValue("ethAutoCalc", true);
+                }}
                 value={formik.values.amountUSDP}
               />
             </div>
@@ -107,8 +130,11 @@ export default function Order() {
                     endAdornment: <p>ETH</p>,
                   }}
                   type="number"
-                  // {...getFieldProps("amountETH")}
-                  onChange={(e)=> {formik.handleChange(e); formik.setFieldValue("amountUSDP", (formik.values.amountUSDP * 1000) / formik.values.leverage)}}
+                  onChange={(e) => {
+                    formik.handleChange(e);
+                    formik.setFieldValue("ethAutoCalc", false);
+                    formik.setFieldValue("usdpAutoCalc", true);
+                  }}
                   value={formik.values.amountETH}
                 />
               </Grid>
@@ -307,6 +333,11 @@ export default function Order() {
             <div>
               <LoadingButton
                 fullWidth
+                disabled={
+                  formik.values.amountETH === "" ||
+                  formik.values.amountUSDP === ""
+                }
+                loading={isSubmitting}
                 variant="contained"
                 sx={{ mt: 3 }}
                 onClick={formik.handleSubmit}
@@ -316,9 +347,12 @@ export default function Order() {
             </div>
           </div>
         </div>
-        {JSON.stringify(formik.values)}
       </Fragment>
     );
+  };
+  const handleFormSubmit = (data) => {
+    console.log("submitted form", data);
+    setformData(data);
   };
 
   return (
@@ -327,19 +361,31 @@ export default function Order() {
         <Card sx={{ mt: 4, backgroundColor: "#84a1ff", color: "white" }}>
           <Box sx={{ p: 4, width: 350 }}>
             <FormikProvider>
-              {/* <Form
-                onSubmit={formik.handleSubmit}
-                style={{ display: "contents" }}
-              > */}
-
-              <MainForm />
-
-              {/* </Form> */}
+              <MainForm submittedForm={handleFormSubmit} />
             </FormikProvider>
           </Box>
         </Card>
       </Container>
-      {/* {JSON.stringify(formik.values)} */}
+      {formData && (
+        <Table style={{ display: "inline" }}>
+          <TableHead>
+            <TableRow>
+              <TableCell>AmountUSDP</TableCell>
+              <TableCell>AmountETH</TableCell>
+              <TableCell>Leverage</TableCell>
+              <TableCell>Slippage Tolerance</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <TableRow>
+              <TableCell>{amountUSDP}</TableCell>
+              <TableCell>{amountETH}</TableCell>
+              <TableCell>{leverage}</TableCell>
+              <TableCell>{slippageTolerance}</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      )}
     </Fragment>
   );
 }
