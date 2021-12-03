@@ -12,6 +12,8 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  Alert,
+  AlertTitle,
 } from "@mui/material";
 import * as Yup from "yup";
 import { FormikProvider, useFormik } from "formik";
@@ -19,9 +21,18 @@ import { FaWallet } from "react-icons/fa";
 import { LoadingButton } from "@mui/lab";
 import { Table } from "reactstrap";
 
+const alertDiaStyle = {
+  width: "max-content",
+  textAlign: "center",
+  margin: "auto",
+  display: "flex",
+  float: "right",
+  marginRight: "1rem",
+};
 export default function Order() {
   const [formData, setformData] = useState({});
   const [showTable, setshowTable] = useState(false);
+  const [showSuccess, setshowSuccess] = useState(false);
   const { amountUSDP, amountETH, leverage, slippageTolerance } = formData;
 
   const initialValues = {
@@ -48,6 +59,10 @@ export default function Order() {
         formik.setSubmitting(false);
       }, 2000);
       setshowTable(true);
+      setshowSuccess(true);
+      setTimeout(() => {
+        setshowSuccess(false);
+      }, 2000);
       setformData(formik.values);
     },
   });
@@ -69,6 +84,12 @@ export default function Order() {
 
   return (
     <Fragment>
+      {showSuccess && (
+        <Alert severity="success" sx={alertDiaStyle}>
+          <AlertTitle>Success</AlertTitle>
+        </Alert>
+      )}
+
       <Container sx={{ width: "fit-content" }}>
         <Card sx={{ mt: 4, backgroundColor: "#84a1ff", color: "white" }}>
           <Box sx={{ p: 4, width: 350 }}>
@@ -329,24 +350,26 @@ export default function Order() {
         </Card>
       </Container>
 
-      {showTable && (<Table style={{ display: "inline" }}>
-        <TableHead>
-          <TableRow>
-            <TableCell>AmountUSDP</TableCell>
-            <TableCell>AmountETH</TableCell>
-            <TableCell>Leverage</TableCell>
-            <TableCell>Slippage Tolerance</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          <TableRow>
-            <TableCell>{amountUSDP}</TableCell>
-            <TableCell>{amountETH}</TableCell>
-            <TableCell>{leverage}</TableCell>
-            <TableCell>{slippageTolerance}</TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>)}
+      {showTable && (
+        <Table style={{ display: "inline" }}>
+          <TableHead>
+            <TableRow>
+              <TableCell>AmountUSDP</TableCell>
+              <TableCell>AmountETH</TableCell>
+              <TableCell>Leverage</TableCell>
+              <TableCell>Slippage Tolerance</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <TableRow>
+              <TableCell>{amountUSDP}</TableCell>
+              <TableCell>{amountETH}</TableCell>
+              <TableCell>{leverage}</TableCell>
+              <TableCell>{slippageTolerance}</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      )}
     </Fragment>
   );
 }
