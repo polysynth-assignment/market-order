@@ -23,26 +23,38 @@ import { alpha, styled } from "@mui/material/styles";
 import { LoadingButton } from "@mui/lab";
 
 export default function Order() {
-  const initialValues = {
-    amountUSDP: "",
-    amountETH: "",
-    leverage: 1,
-    slippageTolerance: 0.5,
-    customSlippageTolerance: "",
-  };
-  const validateSchema = Yup.object().shape({
-    amountUSDP: Yup.string().required(),
-    amountETH: Yup.string().required(),
-    leverage: Yup.string().required(),
-    slippageTolerance: Yup.string().required(),
-  });
-  const formik = useFormik({
-    initialValues: initialValues,
-    validationSchema: validateSchema,
-    onSubmit: () => console.log("Submitted form", formik.values),
-  });
-
   const MainForm = () => {
+    const initialValues = {
+      amountUSDP: 0,
+      amountETH:0,
+      leverage: 1,
+      slippageTolerance: 0.5,
+      customSlippageTolerance: "",
+    };
+    const validateSchema = Yup.object().shape({
+      amountUSDP: Yup.string().required(),
+      amountETH: Yup.string().required(),
+      leverage: Yup.string().required(),
+      slippageTolerance: Yup.string().required(),
+    });
+    const formik = useFormik({
+      initialValues: initialValues,
+      validationSchema: validateSchema,
+      onSubmit: () => alert("Submitted form" + JSON.stringify(formik.values)),
+    });
+    const { getFieldProps } = formik;
+
+    // useEffect(() => {
+    //   const val = (formik.values.amountUSDP * 1000) / formik.values.leverage;
+    //   formik.setFieldValue("amountETH", val);
+    // }, [formik.values.amountUSDP, formik.values.leverage]);
+    // useEffect(() => {
+    //   if(formik.values.amountUSDP >= 1){
+    //     const val = (formik.values.amountETH * 1000) / formik.values.leverage;
+    //   formik.setFieldValue("amountUSDP", val);
+    //   }
+    // }, [formik.values.amountETH, formik.values.leverage]);
+
     return (
       <Fragment>
         <div className="col-md-6 col-sm-12">
@@ -50,10 +62,7 @@ export default function Order() {
             <div>
               <Grid container spacing={0}>
                 <Grid item>
-                  <Typography
-                    gutterBottom
-                    sx={{ color: "#000" }}
-                  >
+                  <Typography gutterBottom sx={{ color: "#000" }}>
                     Amount
                   </Typography>
                 </Grid>
@@ -66,13 +75,14 @@ export default function Order() {
                 InputProps={{
                   endAdornment: <p>USDP</p>,
                 }}
-                inputProps={{  inputMode: "numeric" }}
                 helperText={
                   <span>
                     <FaWallet /> $ abcd
                   </span>
                 }
-                onChange={formik.handleChange}
+                type="number"
+                // {...getFieldProps("amountUSDP")}
+                onChange={(e)=> {formik.handleChange(e); formik.setFieldValue("amountETH", (formik.values.amountETH * 1000) / formik.values.leverage)}}
                 value={formik.values.amountUSDP}
               />
             </div>
@@ -84,10 +94,7 @@ export default function Order() {
             <div>
               <Grid container spacing={0} sx={{ mt: 1 }}>
                 <Grid item>
-                  <Typography
-                    gutterBottom
-                    sx={{ color: "#000" }}
-                  >
+                  <Typography gutterBottom sx={{ color: "#000" }}>
                     Amount
                   </Typography>
                 </Grid>
@@ -99,7 +106,9 @@ export default function Order() {
                   InputProps={{
                     endAdornment: <p>ETH</p>,
                   }}
-                  onChange={formik.handleChange}
+                  type="number"
+                  // {...getFieldProps("amountETH")}
+                  onChange={(e)=> {formik.handleChange(e); formik.setFieldValue("amountUSDP", (formik.values.amountUSDP * 1000) / formik.values.leverage)}}
                   value={formik.values.amountETH}
                 />
               </Grid>
@@ -285,11 +294,6 @@ export default function Order() {
                         endAdornment: <p>%</p>,
                         disableUnderline: true,
                       }}
-                      //   inputProps={{
-                      //     type: "number",
-                      //     min: 1,
-                      //     max: 5
-                      //   }}
                     />
                   </Button>
                 </Grid>
@@ -312,24 +316,30 @@ export default function Order() {
             </div>
           </div>
         </div>
+        {JSON.stringify(formik.values)}
       </Fragment>
     );
   };
 
   return (
-    <Container sx={{ width: "fit-content" }}>
-      <Card sx={{ mt: 4, backgroundColor: "#84a1ff", color: "white" }}>
-        <Box sx={{ p: 4, width: 350 }}>
-          <FormikProvider value={formik}>
-            <Form
-              onSubmit={formik.handleSubmit}
-              style={{ display: "contents" }}
-            >
+    <Fragment>
+      <Container sx={{ width: "fit-content" }}>
+        <Card sx={{ mt: 4, backgroundColor: "#84a1ff", color: "white" }}>
+          <Box sx={{ p: 4, width: 350 }}>
+            <FormikProvider>
+              {/* <Form
+                onSubmit={formik.handleSubmit}
+                style={{ display: "contents" }}
+              > */}
+
               <MainForm />
-            </Form>
-          </FormikProvider>
-        </Box>
-      </Card>
-    </Container>
+
+              {/* </Form> */}
+            </FormikProvider>
+          </Box>
+        </Card>
+      </Container>
+      {/* {JSON.stringify(formik.values)} */}
+    </Fragment>
   );
 }
