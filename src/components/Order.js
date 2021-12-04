@@ -122,6 +122,10 @@ export default function Order() {
                         formik.handleChange(e);
                         formik.setFieldValue("usdpAutoCalc", false);
                         formik.setFieldValue("ethAutoCalc", true);
+                        formik.setFieldValue(
+                          "amountETH",
+                          (e.target.value * 1000) / formik.values.leverage
+                        );
                       }}
                       value={formik.values.amountUSDP}
                     />
@@ -151,6 +155,10 @@ export default function Order() {
                           formik.handleChange(e);
                           formik.setFieldValue("ethAutoCalc", false);
                           formik.setFieldValue("usdpAutoCalc", true);
+                          formik.setFieldValue(
+                            "amountUSDP",
+                            (e.target.value * formik.values.leverage) / 1000
+                          );
                         }}
                         value={formik.values.amountETH}
                       />
